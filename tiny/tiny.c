@@ -185,14 +185,16 @@ void serve_static(int fd, char *filename, int filesize)
 
 void get_filetype(char *filename, char *filetype)
 {
-    if (*strstr(filename, ".html"))
+    if (strstr(filename, ".html"))
         strcpy(filetype, "text/html");
-    else if (*strstr(filename, ".gif"))
+    else if (strstr(filename, ".gif"))
         strcpy(filetype, "image/gif");
-    else if (*strstr(filename, ".png"))
+    else if (strstr(filename, ".png"))
         strcpy(filetype, "image/png");
-    else if (*strstr(filename, ".jpg"))
+    else if (strstr(filename, ".jpg"))
         strcpy(filetype, "image/jpg");
+    else if (strstr(filename, ".mp4"))
+        strcpy(filetype, "video/mp4");
     else
         strcpy(filetype, "text/plain");
 }
@@ -206,11 +208,11 @@ void serve_dynamic(int fd, char *filename, char *cgiargs)
     sprintf(buf, "Server: Tiny Web Server\r\n");
     Rio_writen(fd, buf, strlen(buf));
 
-    if (Fork() == 0)
+    if (Fork() == 0) // 자식 프로세스 포크
     {
-        setenv("QUERY_STRING", cgiargs, 1);
-        Dup2(fd, STDOUT_FILENO);
-        Execve(filename, emptylist, environ);
+        setenv("QUERY_STRING", cgiargs, 1);   // QUERY_STRING 환경 변수를 URI에서 추출한 CGI 인수로 설정
+        Dup2(fd, STDOUT_FILENO);              // 자식 프로세스의 표준 출력을 클라이언트 소켓에 연결된 파일 디스크립터로 변경
+        Execve(filename, emptylist, environ); // 현재 프로세스의 이미지를 filename 프로그램으로 대체
     }
     Wait(NULL);
 }
