@@ -12,7 +12,7 @@ int main(void)
 
     if ((buf = getenv("QUERY_STRING")) != NULL)
     {
-        p = strchr(buf, "&");
+        p = strchr(buf, '&');
         *p = '\0';
         strcpy(arg1, buf);
         strcpy(arg2, p + 1);

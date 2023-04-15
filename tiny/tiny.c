@@ -149,7 +149,7 @@ int parse_uri(char *uri, char *filename, char *cgiargs)
         if (ptr)
         {
             strcpy(cgiargs, ptr + 1);
-            *ptr = '/0';
+            *ptr = '\0';
         }
         else
             strcpy(cgiargs, "");
