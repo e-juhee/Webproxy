@@ -1,9 +1,26 @@
 <html>
   <head>
     <title>Tiny Web-server</title>
+    <script>
+      function adder() {
+        const n1 = document.getElementById("n1").value;
+        const n2 = document.getElementById("n2").value;
+        const url =
+          "http://ec2-52-79-234-188.ap-northeast-2.compute.amazonaws.com:8000/cgi-bin/adder?" +
+          n1 +
+          "&" +
+          n2;
+        window.location.href = url;
+      }
+    </script>
   </head>
   <body>
     <!-- <img align="middle" src="godzilla.gif" /> -->
-    <video src="video.mp4" controls loop></video>
+    <video src="video.mp4" controls loop autoplay></video>
+    <form>
+      <input type="number" id="n1" />
+      <input type="number" id="n2" />
+      <input type="button" value="Submit" onclick="adder()" />
+    </form>
   </body>
 </html>

@@ -11,9 +11,9 @@
 void doit(int fd);
 void read_requesthdrs(rio_t *rp);
 int parse_uri(char *uri, char *filename, char *cgiargs);
-void serve_static(int fd, char *filename, int filesize);
+void serve_static(int fd, char *filename, int filesize, char *method);
 void get_filetype(char *filename, char *filetype);
-void serve_dynamic(int fd, char *filename, char *cgiargs);
+void serve_dynamic(int fd, char *filename, char *cgiargs, char *method);
 void clienterror(int fd, char *cause, char *errnum, char *shortmsg, char *longmsg);
 
 int main(int argc, char **argv)
@@ -78,7 +78,7 @@ void doit(int fd)
             clienterror(fd, filename, "403", "Forbidden", "Tiny couldn't read the file");
             return;
         }
-        serve_static(fd, filename, sbuf.st_size); // 정적 컨텐츠 제공
+        serve_static(fd, filename, sbuf.st_size, method); // 정적 컨텐츠 제공
     }
     else
     { // 동적 컨텐츠인 경우
@@ -87,7 +87,7 @@ void doit(int fd)
             clienterror(fd, filename, "403", "Forbidden", "Tiny couldn't run the CGI program");
             return;
         }
-        serve_dynamic(fd, filename, cgiargs); // 동적 컨텐츠 제공
+        serve_dynamic(fd, filename, cgiargs, method); // 동적 컨텐츠 제공
     }
 }
 
@@ -159,11 +159,11 @@ int parse_uri(char *uri, char *filename, char *cgiargs)
     }
 }
 
-void serve_static(int fd, char *filename, int filesize)
+void serve_static(int fd, char *filename, int filesize, char *method)
 {
     int srcfd;
     char *srcp, filetype[MAXLINE], buf[MAXBUF];
-
+    rio_t rio;
     /* 응답 헤더 전송 */
     get_filetype(filename, filetype);                          // 파일 타입 결정
     sprintf(buf, "HTTP/1.0 200 OK\r\n");                       // 상태 코드
@@ -175,12 +175,21 @@ void serve_static(int fd, char *filename, int filesize)
     printf("Response headers:\n");
     printf("%s", buf);
 
+    /* HTTP HEAD 메소드 처리 */
+    if (strcasecmp(method, "HEAD") == 0)
+    {
+        return; // 응답 바디를 전송하지 않음
+    }
+
     /* 응답 바디 전송 */
-    srcfd = Open(filename, O_RDONLY, 0);                        // 파일 열기
-    srcp = Mmap(0, filesize, PROT_READ, MAP_PRIVATE, srcfd, 0); // 파일을 가상메모리에 매핑
-    Close(srcfd);                                               // 파일 디스크립터 닫기
-    Rio_writen(fd, srcp, filesize);                             // 파일 내용을 클라이언트에게 전송 (응답 바디 전송)
-    Munmap(srcp, filesize);                                     // 매핑된 가상메모리 해제
+    srcfd = Open(filename, O_RDONLY, 0); // 파일 열기
+    // srcp = Mmap(0, filesize, PROT_READ, MAP_PRIVATE, srcfd, 0); // 파일을 가상메모리에 매핑
+    srcp = malloc(filesize);          // 파일을 위한 메모리 할당
+    Rio_readinitb(&rio, srcfd);       // 파일을 버퍼로 읽기위한 초기화
+    Rio_readn(srcfd, srcp, filesize); // 읽기
+    Close(srcfd);                     // 파일 디스크립터 닫기
+    Rio_writen(fd, srcp, filesize);   // 파일 내용을 클라이언트에게 전송 (응답 바디 전송)
+    free(srcp);                       // 매핑된 가상메모리 해제
 }
 
 void get_filetype(char *filename, char *filetype)
@@ -199,7 +208,7 @@ void get_filetype(char *filename, char *filetype)
         strcpy(filetype, "text/plain");
 }
 
-void serve_dynamic(int fd, char *filename, char *cgiargs)
+void serve_dynamic(int fd, char *filename, char *cgiargs, char *method)
 {
     char buf[MAXLINE], *emptylist[] = {NULL};
 
@@ -211,6 +220,7 @@ void serve_dynamic(int fd, char *filename, char *cgiargs)
     if (Fork() == 0) // 자식 프로세스 포크
     {
         setenv("QUERY_STRING", cgiargs, 1);   // QUERY_STRING 환경 변수를 URI에서 추출한 CGI 인수로 설정
+        setenv("REQUEST_METHOD", method, 1);  // QUERY_STRING 환경 변수를 URI에서 추출한 CGI 인수로 설정
         Dup2(fd, STDOUT_FILENO);              // 자식 프로세스의 표준 출력을 클라이언트 소켓에 연결된 파일 디스크립터로 변경
         Execve(filename, emptylist, environ); // 현재 프로세스의 이미지를 filename 프로그램으로 대체
     }

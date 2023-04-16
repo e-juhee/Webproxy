@@ -29,8 +29,11 @@ int main(void)
     printf("Connection: close\r\n");
     printf("Content-length: %d\r\n", (int)strlen(content));
     printf("Content-type: text/html\r\n\r\n");
-    printf("%s", content); // HTML 응답의 바디인 content 출력
-    fflush(stdout);        // 출력 버퍼 비움
+
+    if (strcasecmp(getenv("REQUEST_METHOD"), "GET") == 0) // GET인 경우만
+        printf("%s", content);                            // HTML 응답의 바디인 content 출력
+
+    fflush(stdout); // 출력 버퍼 비움
 
     exit(0);
 }
