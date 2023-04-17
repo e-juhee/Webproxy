@@ -6,6 +6,7 @@ void doit(int clientfd);
 void read_requesthdrs(rio_t *rp, void *buf, int serverfd, char *hostname, char *port);
 void clienterror(int fd, char *cause, char *errnum, char *shortmsg, char *longmsg);
 void parse_uri(char *uri, char *hostname, char *port, char *path);
+void *thread(void *vargp);
 
 /* Recommended max cache and object sizes */
 #define MAX_CACHE_SIZE 1049000
@@ -20,10 +21,11 @@ static const int is_local_test = 1; // 로컬이 아닌 외부에서 테스트�
 
 int main(int argc, char **argv)
 {
-    int listenfd, clientfd;
+    int listenfd, *clientfd;
     char client_hostname[MAXLINE], client_port[MAXLINE];
     socklen_t clientlen;
     struct sockaddr_storage clientaddr;
+    pthread_t tid;
 
     /* Check command line args */
     if (argc != 2)
@@ -36,12 +38,22 @@ int main(int argc, char **argv)
     while (1)
     {
         clientlen = sizeof(clientaddr);
-        clientfd = Accept(listenfd, (SA *)&clientaddr, &clientlen); // 클라이언트 연결 요청 수신
+        clientfd = Malloc(sizeof(int));
+        *clientfd = Accept(listenfd, (SA *)&clientaddr, &clientlen); // 클라이언트 연결 요청 수신
         Getnameinfo((SA *)&clientaddr, clientlen, client_hostname, MAXLINE, client_port, MAXLINE, 0);
         printf("Accepted connection from (%s, %s)\n", client_hostname, client_port);
-        doit(clientfd);
-        Close(clientfd);
+        Pthread_create(&tid, NULL, thread, clientfd);
     }
+}
+
+void *thread(void *vargp)
+{
+    int clientfd = *((int *)vargp);
+    Pthread_detach(pthread_self());
+    Free(vargp);
+    doit(clientfd);
+    Close(clientfd);
+    return NULL;
 }
 
 void doit(int clientfd)
