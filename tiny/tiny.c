@@ -121,6 +121,7 @@ void read_requesthdrs(rio_t *rp)
     char buf[MAXLINE];
 
     Rio_readlineb(rp, buf, MAXLINE); // 요청 메시지의 첫번째 줄 읽기
+    printf("%s", buf);               // 헤더 필드 출력
     while (strcmp(buf, "\r\n"))      // 버퍼에서 읽은 줄이 '\r\n'이 아닐 때까지 반복 (strcmp: 두 인자가 같으면 0 반환)
     {
         Rio_readlineb(rp, buf, MAXLINE);
