@@ -52,11 +52,11 @@ void doit(int clientfd)
     char *srcp, filename[MAXLINE], cgiargs[MAXLINE];
     rio_t request_rio, response_rio;
 
-    /* Request 1 - 요청 라인 읽기 [Client -> Proxy] */
+    /* Request 1 - 요청 라인 읽기 [🙋‍♀️ Client -> 🚒 Proxy] */
     Rio_readinitb(&request_rio, clientfd);             // 클라이언트의 요청을 읽기 위해 rio와 fd 연결
     Rio_readlineb(&request_rio, request_buf, MAXLINE); // 요청 라인 읽기
     printf("Request headers:\n %s\n", request_buf);
-    sscanf(request_buf, "%s %s", method, uri); // 요청 라인에서 method, uri, version을 읽어서 지역 변수 `method` `uri`에 할당
+    sscanf(request_buf, "%s %s", method, uri); // 요청 라인에서 method, uri를 읽어서 지역 변수 `method` `uri`에 할당
     parse_uri(uri, hostname, port, path);
     sprintf(request_buf, "%s %s %s\r\n", method, path, "HTTP/1.0"); // end server에 전송하기 위해 요청 라인 수정
 
@@ -75,18 +75,18 @@ void doit(int clientfd)
         return;
     }
 
-    /* Request 2 - 요청 라인 전송 [Proxy -> Server] */
+    /* Request 2 - 요청 라인 전송 [🚒 Proxy -> 💻 Server] */
     Rio_writen(serverfd, request_buf, strlen(request_buf));
 
-    /* Request 3 & 4 - 요청 헤더 읽기 & 전송 [Client -> Proxy -> Server] */
+    /* Request 3 & 4 - 요청 헤더 읽기 & 전송 [🙋‍♀️ Client -> 🚒 Proxy -> 💻 Server] */
     read_requesthdrs(&request_rio, request_buf, serverfd, hostname, port);
 
-    /* Response 1 - 응답 라인 읽기 & 전송 [Server -> Proxy -> Client] */
+    /* Response 1 - 응답 라인 읽기 & 전송 [💻 Server -> 🚒 Proxy -> 🙋‍♀️ Client] */
     Rio_readinitb(&response_rio, serverfd);                   // 서버의 응답을 담을 버퍼 초기화
     Rio_readlineb(&response_rio, response_buf, MAXLINE);      // 응답 라인 읽기
     Rio_writen(clientfd, response_buf, strlen(response_buf)); // 클라이언트에 응답 라인 보내기
 
-    /* Response 2 - 응답 헤더 읽기 & 전송 [Server -> Proxy -> Client] */
+    /* Response 2 - 응답 헤더 읽기 & 전송 [💻 Server -> 🚒 Proxy -> 🙋‍♀️ Client] */
     int content_length;
     while (strcmp(response_buf, "\r\n"))
     {
@@ -96,7 +96,7 @@ void doit(int clientfd)
         Rio_writen(clientfd, response_buf, strlen(response_buf));
     }
 
-    /* Response 3 - 응답 바디 읽기 & 전송 [Server -> Proxy -> Client] */
+    /* Response 3 - 응답 바디 읽기 & 전송 [💻 Server -> 🚒 Proxy -> 🙋‍♀️ Client] */
     if (content_length)
     {
         srcp = malloc(content_length);
