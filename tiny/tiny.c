@@ -6,6 +6,7 @@
  * Updated 11/2019 droh
  *   - Fixed sprintf() aliasing issue in serve_static(), and clienterror().
  */
+#include <signal.h>
 #include "csapp.h"
 
 void doit(int fd);
@@ -44,6 +45,8 @@ int main(int argc, char **argv)
 
 void doit(int fd)
 {
+    signal(SIGPIPE, SIG_IGN);
+
     int is_static;
     struct stat sbuf;
     char buf[MAXLINE], method[MAXLINE], uri[MAXLINE], version[MAXLINE]; // MAXLINE: 8192
