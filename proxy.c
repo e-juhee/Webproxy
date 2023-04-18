@@ -111,10 +111,8 @@ void doit(int clientfd)
     /* Response 3 - 응답 바디 읽기 & 전송 [💻 Server -> 🚒 Proxy -> 🙋‍♀️ Client] */
     if (content_length)
     {
-        srcp = malloc(content_length);
-        Rio_readnb(&response_rio, srcp, content_length);
-        Rio_writen(clientfd, srcp, content_length);
-        free(srcp);
+        Rio_readnb(&response_rio, response_buf, content_length);
+        Rio_writen(clientfd, response_buf, content_length);
     }
 }
 
