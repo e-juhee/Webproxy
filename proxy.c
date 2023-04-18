@@ -38,7 +38,6 @@ static const char *user_agent_hdr =
 int main(int argc, char **argv)
 {
   signal(SIGPIPE, SIG_IGN);
-  rootp = (web_object_t *)calloc(1, sizeof(web_object_t));
   int listenfd, *clientfd;
   char client_hostname[MAXLINE], client_port[MAXLINE];
   socklen_t clientlen;
@@ -52,6 +51,7 @@ int main(int argc, char **argv)
     exit(1);
   }
 
+  rootp = (web_object_t *)calloc(1, sizeof(web_object_t));
   listenfd = Open_listenfd(argv[1]); // 전달받은 포트 번호를 사용해 수신 소켓 생성
   while (1)
   {
@@ -295,18 +295,13 @@ web_object_t *find_cache(char *path)
 {
   if (rootp->content_length == 0) // 캐시가 비었으면
     return NULL;
-  web_object_t *current = rootp;
 
-  if (strcmp(current->path, path) == 0)
-    return current;
+  web_object_t *current = rootp;
 
   while (strcmp(current->path, path)) // 현재 검사 중인 노드의 path가 다르면 반복
   {
     if (current->right->content_length == 0) // 현재 검사 중인 노드의 오른쪽이 없으면
       return NULL;
-
-    if (strcmp(current->path, path) == 0)
-      return current;
 
     current = current->right;
 
@@ -325,15 +320,14 @@ void send_cache(web_object_t *web_object, int clientfd)
   sprintf(buf, "%sServer: Tiny Web Server\r\n", buf);                            // 서버 이름
   sprintf(buf, "%sConnection: close\r\n", buf);                                  // 연결 방식
   sprintf(buf, "%sContent-length: %d\r\n\r\n", buf, web_object->content_length); // 컨텐츠 길이
-  Rio_writen(clientfd, buf, strlen(buf));                                        // 클라이언트에 응답 헤더 보내기
+  Rio_writen(clientfd, buf, strlen(buf));
 
   /* 캐싱된 응답 바디 전송 */
-  Rio_writen(clientfd, web_object->response_ptr, web_object->content_length); // 클라이언트에 응답 헤더 보내기
+  Rio_writen(clientfd, web_object->response_ptr, web_object->content_length);
 }
 
 void read_cache(web_object_t *web_object)
 {
-
   if (web_object == rootp)
     return;
 
