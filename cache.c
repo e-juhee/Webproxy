@@ -22,6 +22,7 @@ web_object_t *find_cache(char *path)
     if (!strcmp(current->path, path)) // path가 같은 노드를 찾았다면 해당 객체 반환
       return current;
   }
+  return current;
 }
 
 // `web_object`에 저장된 response를 Client에 전송하는 함수

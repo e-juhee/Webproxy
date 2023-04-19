@@ -131,6 +131,8 @@ void doit(int clientfd)
   }
   else
     free(response_ptr); // 캐싱하지 않은 경우만 메모리 반환
+
+  Close(serverfd);
 }
 
 // 클라이언트에 에러를 전송하는 함수
