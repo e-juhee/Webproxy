@@ -10,7 +10,7 @@ void read_requesthdrs(rio_t *rp, void *buf, int serverfd, char *hostname, char *
 void clienterror(int fd, char *cause, char *errnum, char *shortmsg, char *longmsg);
 void parse_uri(char *uri, char *hostname, char *port, char *path);
 
-static const int is_local_test = 0; // 테스트 환경에 따른 도메인&포트 지정을 위한 상수 (0 할당 시 도메인&포트가 고정되어 외부에서 접속 가능)
+static const int is_local_test = 1; // 테스트 환경에 따른 도메인&포트 지정을 위한 상수 (0 할당 시 도메인&포트가 고정되어 외부에서 접속 가능)
 static const char *user_agent_hdr =
     "User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:10.0.3) Gecko/20120305 "
     "Firefox/10.0.3\r\n";
@@ -23,6 +23,9 @@ int main(int argc, char **argv)
   struct sockaddr_storage clientaddr;
   pthread_t tid;
   signal(SIGPIPE, SIG_IGN); // SIGPIPE 예외처리
+
+  rootp = (web_object_t *)calloc(1, sizeof(web_object_t));
+  lastp = (web_object_t *)calloc(1, sizeof(web_object_t));
 
   if (argc != 2)
   {
@@ -124,7 +127,6 @@ void doit(int clientfd)
     web_object->response_ptr = response_ptr;
     web_object->content_length = content_length;
     strcpy(web_object->path, path);
-
     write_cache(web_object); // 캐시 연결 리스트에 추가
   }
   else

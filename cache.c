@@ -51,7 +51,8 @@ void read_cache(web_object_t *web_object)
     // 이전 노드와 다음 노드를 이어줌
     web_object_t *prev_objtect = web_object->prev;
     web_object_t *next_objtect = web_object->next;
-    web_object->prev->next = next_objtect;
+    if (prev_objtect)
+      web_object->prev->next = next_objtect;
     web_object->next->prev = prev_objtect;
   }
   else // '다음 노드'가 없는 경우 (현재 노드가 마지막 노드인 경우)
@@ -75,7 +76,7 @@ void write_cache(web_object_t *web_object)
   {
     total_cache_size -= lastp->content_length;
     lastp = lastp->prev; // 마지막 노드를 마지막의 이전 노드로 변경
-    free(lastp->next); // 제거한 노드의 메모리 반환
+    free(lastp->next);   // 제거한 노드의 메모리 반환
     lastp->next = NULL;
   }
 
