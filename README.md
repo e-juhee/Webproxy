@@ -1,8 +1,11 @@
-####################################################################
-# CS:APP Proxy Lab
-#
-# Student Source Files
-####################################################################
+<br/>
+
+# [🔗 Web Proxy 구현](https://ejuhee.notion.site/Web-Proxy-2d4d6b530e1141de80bc91d4b6639a03)
+
+<br/>
+
+CS:APP Proxy Lab
+Student Source Files
 
 This directory contains the files you will need for the CS:APP Proxy
 Lab.
